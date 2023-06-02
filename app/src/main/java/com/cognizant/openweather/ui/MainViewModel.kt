@@ -54,8 +54,6 @@ class MainViewModel @Inject constructor(
             loadGPSCoordinatesAndWeatherInfo()
         }
 
-        firstLoaded = true
-
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -74,6 +72,9 @@ class MainViewModel @Inject constructor(
         }
         // get the last known location from the location repository
         locationRepository.getLastLocation()?.let { task ->
+
+            firstLoaded = true
+
             isLoading.value = true // show loading indicator
 
             task.addOnCompleteListener { // hide loading indicator when the task completes
