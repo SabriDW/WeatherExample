@@ -1,24 +1,21 @@
-package com.cognizant.openweather.ui
+package com.cognizant.openweather.ui.screens.search
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cognizant.openweather.data.prefs.SearchPreferences
 import com.cognizant.openweather.data.repositories.LocationRepositoryImpl
 import com.cognizant.openweather.data.repositories.WeatherRepositoryImpl
-import com.cognizant.openweather.network.weather.WeatherResponse
+import com.cognizant.openweather.network.currentweather.WeatherResponse
 import com.cognizant.openweather.ui.MainActivity.Companion.SEARCH_SCREEN
+import com.cognizant.openweather.ui.MainActivity.Companion.WEATHER_SCREEN
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// for the sake of simplicity given time constraints, we are using a single view model for both screens
-// in a production app, we would have separate view models for each screen and pass data between them using the repositories
-
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class SearchViewModel @Inject constructor(
     private val weatherRepository: WeatherRepositoryImpl,
     private val locationRepository: LocationRepositoryImpl,
     private val searchPreferences: SearchPreferences
@@ -28,37 +25,40 @@ class MainViewModel @Inject constructor(
 
     val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val errorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    var firstLoaded =
-        false // used to check if data has already being loading to avoid using the location repository twice
-
+    val currentScreen: MutableStateFlow<String> = MutableStateFlow(SEARCH_SCREEN)
+    val weatherData: MutableStateFlow<WeatherResponse?> = MutableStateFlow(null)
 
     // search query with the last saved value from shared preferences as the initial value
-    val searchQuery: MutableStateFlow<String> =
-        MutableStateFlow(searchPreferences.getSearchQuery() ?: "")
+    val searchQuery: MutableStateFlow<String> = MutableStateFlow(
+        searchPreferences.getSearchQuery() ?: ""
+    )
 
-    // current screen with the search screen as the initial value
-    val currentScreen: MutableStateFlow<String> = MutableStateFlow(SEARCH_SCREEN)
-
-    // weather data with null as the initial value (not loaded yet)
-    val weatherData: MutableStateFlow<WeatherResponse?> = MutableStateFlow(null)
+    // used to check if data has already being loading to avoid using the location repository twice
+    var locationAlreadyLoaded: Boolean = false
 
 
     //endregion
 
-    init { // load weather data when the view model is initialized
+    init {
 
-        if (searchQuery.value.isNotEmpty()) {
-            loadWeatherDataUsingSearchQuery()
+        // if the weather repository has cached weather data, skip loading
+        // this is to avoid loading data twice when the user navigates back to the search screen
+        if (weatherRepository.getCachedWeather() != null) {
+            locationAlreadyLoaded = true
         } else {
-            loadGPSCoordinatesAndWeatherInfo()
+            // directly load weather data if there is a saved search query or GPS permission is granted
+            if (searchQuery.value.isNotEmpty()) {
+                loadWeatherDataUsingSearchQuery()
+            } else {
+                loadGPSCoordinatesAndWeatherInfo()
+            }
         }
-
     }
 
+    //region UI Events
     fun onSearchQueryChanged(query: String) {
         searchQuery.value = query
-        errorMessage.value = null
+        errorMessage.value = null // clear error message when the search query changes
     }
 
     fun onSearchButtonClicked() {
@@ -67,13 +67,22 @@ class MainViewModel @Inject constructor(
 
     fun loadGPSCoordinatesAndWeatherInfo(
     ) {
-        if (firstLoaded) { // if this is not the first time the view model is initialized, do nothing
+
+        // if data has already being loaded using the location repository (e.g., when permission is first granted), do nothing
+        if (locationAlreadyLoaded) {
             return
         }
+
+        // if there is a saved search query, do nothing as searched query takes precedence
+        if (!searchPreferences.getSearchQuery().isNullOrEmpty()) {
+            return
+        }
+
         // get the last known location from the location repository
         locationRepository.getLastLocation()?.let { task ->
 
-            firstLoaded = true
+            // set locationAlreadyLoaded to true to avoid using the location repository twice
+            locationAlreadyLoaded = true
 
             isLoading.value = true // show loading indicator
 
@@ -84,12 +93,11 @@ class MainViewModel @Inject constructor(
             task.addOnSuccessListener { location ->
                 loadWeatherDataUsingLocation(location.latitude, location.longitude)
             }
-
         }
-
     }
+    //endregion
 
-    fun loadWeatherDataUsingLocation(
+    private fun loadWeatherDataUsingLocation(
         latitude: Double,
         longitude: Double
     ) {
@@ -100,53 +108,52 @@ class MainViewModel @Inject constructor(
         loadWeatherData(searchQuery.value)
     }
 
-    fun loadWeatherData(
+    private fun loadWeatherData(
         cityName: String? = null,
         latitude: Double? = null,
         longitude: Double? = null
     ) {
 
-        // Check that either city name or lat/long are provided, otherwise show error message and abort
-        if (cityName == null && (latitude == null || longitude == null)) {
-            errorMessage.value = "Invalid parameters"
-            return
-        }
-
         viewModelScope.launch(Dispatchers.IO) {
-            isLoading.emit(true)
+
+            isLoading.value = true
+
             weatherRepository.getWeather(
                 cityName = cityName,
                 latitude = latitude,
                 longitude = longitude,
-                onComplete = {
-                    isLoading.value = false
-                },
-                onError = { code, message ->
-                    isLoading.value = false
-                    handleErrorMessage(message, code)
-                }
             ).collect { weatherResponse ->
-                weatherData.emit(weatherResponse) // emit the weather data to the UI
 
-                // switch to the weather screen
-                navigateTo(MainActivity.WEATHER_SCREEN)
+                isLoading.value = false // hide loading indicator
 
-                // save search query to shared preferences only if the API call was successful
-                weatherResponse?.let {
+                weatherResponse.data?.let {
+
+                    weatherData.emit(it)
+
+                    // save search query to shared preferences only if the API call was successful,
                     searchPreferences.saveSearchQuery(searchQuery.value)
+
+                    // switch to the weather screen
+                    navigateToWeatherScreen()
                 }
+
+                // handle error message if there is one
+                weatherResponse.errorMessage?.let {
+                    handleErrorMessage(it)
+                }
+
+
             }
         }
 
     }
 
-    fun navigateTo(screen: String) {
-        currentScreen.value = screen
+    private fun navigateToWeatherScreen() {
+        currentScreen.value = WEATHER_SCREEN
     }
 
-    private fun handleErrorMessage(message: String?, code: Int) {
+    private fun handleErrorMessage(message: String) {
         errorMessage.value = message
-            ?: "Unknown with code $code" // TODO: map error message to more user friendly and localized strings
     }
 
 //    UNUSED: This function is not used anywhere in the app but is included here to demonstrate the use of the Geocoder class

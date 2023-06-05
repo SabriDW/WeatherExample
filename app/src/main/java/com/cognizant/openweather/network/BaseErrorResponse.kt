@@ -1,10 +1,11 @@
-package com.cognizant.openweather.network.weather
+package com.cognizant.openweather.network
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+// BaseErrorResponse is the base error response structure for all the API calls
 @JsonClass(generateAdapter = true)
-data class WeatherErrorResponse(
+data class BaseErrorResponse(
     @Json(name = "cod")
     val code: Int,
     @Json(name = "message")

@@ -1,4 +1,4 @@
-package com.cognizant.openweather.network.weather
+package com.cognizant.openweather.network.currentweather
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,7 +21,7 @@ object MockWeatherResponse {
                 tempMax = 11.79,
                 tempMin = 14.64
             ),
-            name = "New York",
+            name = "London",
             sys = Sys(
                 country = "GB",
                 id = 268730,

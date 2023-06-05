@@ -1,32 +1,36 @@
 package com.cognizant.openweather.data.repositories
 
-import com.cognizant.openweather.network.weather.WeatherClient
-import com.cognizant.openweather.network.weather.WeatherErrorResponse
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.Moshi
+import com.cognizant.openweather.network.ResponseResult
+import com.cognizant.openweather.network.currentweather.WeatherClient
+import com.cognizant.openweather.network.currentweather.WeatherResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
     private val weatherClient: WeatherClient,
-    private val moshi: Moshi
 ) : WeatherRepository {
+
+
+    private var weatherResponseCache: WeatherResponse? = null
 
     // get weather either by city name or lat/long
     override suspend fun getWeather(
         cityName: String?,
         latitude: Double?,
         longitude: Double?,
-        onComplete: () -> Unit,
-        onError: (Int, String?) -> Unit
     ) = flow {
 
-        // check if both city name and lat/long are null, if so, emit error
+        // check if both city name and lat/long are null, if so, emit error and return
         if (cityName == null && (latitude == null || longitude == null)) {
-            onError(-1, "Invalid input")
+            emit(
+                ResponseResult<WeatherResponse>(
+                    null,
+                    -1,
+                    "City name or lat/long must be provided"
+                )
+            )
             return@flow
         }
 
@@ -36,29 +40,14 @@ class WeatherRepositoryImpl @Inject constructor(
             else // otherwise, use city name
                 weatherClient.getWeatherByCityName(cityName!!) // !! is safe here because we check if cityName is null above
 
-        // check if response is successful and body is not null
-        if (weatherResponse.isSuccessful && weatherResponse.body() != null) {
-            emit(weatherResponse.body()) // emit the body
-            onComplete()
-        } else { // otherwise, emit error
+        emit(weatherResponse)
 
-            var errorMessage: String? = null // default error message
+        // cache the response, so we can use it later without making another network call
+        weatherResponseCache = weatherResponse.data
 
-            try { // try to parse error body
-                weatherResponse.errorBody()?.string()?.let { errorBodyString ->
-                    val adapter = moshi.adapter(WeatherErrorResponse::class.java)
-                    adapter.fromJson(errorBodyString)?.let { errorResponse ->
-                        errorMessage = errorResponse.message
-                    }
-                }
+    }.flowOn(Dispatchers.IO)
 
-            } catch (e: JsonDataException) {
-                e.printStackTrace()
-            }
-
-            // pass error code and message to onError callback
-            onError(weatherResponse.code(), errorMessage)
-        }
-    }.onCompletion { onComplete() }.flowOn(Dispatchers.IO)
+    // TODO: This is a temporary solution for demo purposes. We should use a database to cache the weather response.
+    override fun getCachedWeather() = weatherResponseCache
 
 }

@@ -4,7 +4,19 @@
     <string name="enter_city_name">Enter city name</string>
     <string name="acc_search_icon">Search Icon</string>
     <string name="dialog_location_permission_rationale">The location permission is required to display accurate weather information for your current location</string>
-    <string name="allow">Allow</string>
+    <string name="okay">OK</string>
     <string name="cancel">Cancel</string>
     <string name="change_location">Change Location</string>
+    <string name="feels_like_placeholder">Feels like: %s%s</string>
+    <string name="low_placeholder">Low: %s%s</string>
+    <string name="high_placeholder">High: %s%s</string>
+    <string name="wind_speed_placeholder">Wind Speed: %s%s</string>
+    <string name="wind_direction_placeholder">Wind Direction: %s°</string>
+    <string name="humidity_placeholder">Humidity: %s%%</string>
+    <string name="visibility_placeholder">Visibility: %s%s</string>
+    <string name="pressure_placeholder">Pressure: %s%s</string>
+    <string name="how_to_search">How to search</string>
+    <string name="how_to_search_01">1. Enter a city name. Example: \'New York\'</string>
+    <string name="how_to_search_02">2. Or, enter a city name and country code. Example: \'London, UK\'</string>
+    <string name="how_to_search_03">3. For cities in the US, enter a city name and state code. Example: \'Dallas, TX\'</string>
 </resources>

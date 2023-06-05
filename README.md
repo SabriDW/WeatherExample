@@ -24,18 +24,20 @@ The app is built using a modern MVVM architecture and uses the following librari
 The code is structured in the following packages:
 
 - `data`: Contains the data layer of the app. It contains repositories and preferences.
-    - `prefs`: Contains the shared preferences layer of the app. It contains the shared preferences
-      and the preference keys.
-    - `repositories`: Contains the repositories of the app.
 - `di`: Contains the dependency injection modules.
 - `network`: Contains the network layer of the app. It contains the Retrofit service and the API
   models.
-- `ui`: Contains the UI layer of the app. It contains the screens and the view models.
+- `ui`: Contains the UI layer of the app, including themes, screens, and view models.
 
 ## Screenshots
 
-![Search View](screenshots/screenshot_1.png) ![Weather View](screenshots/screenshot_2.png) ![Permission Request](screenshots/screenshot_3.png) ![Permission Rationale](screenshots/screenshot_4.png)
+| ![Weather View](screenshots/screenshot_01.png) | ![Search View](screenshots/screenshot_02.png) | ![Permission Request](screenshots/screenshot_03.png) |
+|:---:|:---:|:---:|
+| Weather View | Search View | Permission Request |
+
+| ![Search View (Dark Mode)](screenshots/screenshot_04.png) | ![Weather View (Dark Mode)](screenshots/screenshot_05.png) | ![Permission Rationale](screenshots/screenshot_06.png) |
+|:---:|:---:|:---:|
+| Search View (Dark Mode) | Weather View (Dark Mode) | Permission Rationale |
 
 
-
-
+[Web illustrations by Storyset](https://storyset.com/web)

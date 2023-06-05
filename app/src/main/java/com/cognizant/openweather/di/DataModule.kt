@@ -1,7 +1,8 @@
 package com.cognizant.openweather.di
 
 import com.cognizant.openweather.data.repositories.WeatherRepositoryImpl
-import com.cognizant.openweather.network.weather.WeatherClient
+import com.cognizant.openweather.network.NetworkClient
+import com.cognizant.openweather.network.currentweather.WeatherClient
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -18,9 +19,8 @@ internal object DataModule {
     @Singleton
     fun provideWeatherRepository(
         weatherClient: WeatherClient,
-        moshi: Moshi
     ): WeatherRepositoryImpl {
-        return WeatherRepositoryImpl(weatherClient, moshi)
+        return WeatherRepositoryImpl(weatherClient)
     }
 
     @Provides
@@ -30,4 +30,9 @@ internal object DataModule {
             .add(KotlinJsonAdapterFactory())
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideResponseHandler(moshi: Moshi): NetworkClient = NetworkClient(moshi)
+
 }

@@ -1,4 +1,4 @@
-package com.cognizant.openweather.network.weather
+package com.cognizant.openweather.network.currentweather
 
 import retrofit2.Response
 import retrofit2.http.GET

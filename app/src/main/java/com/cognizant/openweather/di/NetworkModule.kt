@@ -1,9 +1,9 @@
 package com.cognizant.openweather.di
 
-import com.cognizant.openweather.network.weather.WeatherClient
-import com.cognizant.openweather.network.weather.WeatherService
+import com.cognizant.openweather.network.NetworkClient
+import com.cognizant.openweather.network.currentweather.WeatherClient
+import com.cognizant.openweather.network.currentweather.WeatherService
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -38,7 +39,18 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideWeatherClient(weatherService: WeatherService): WeatherClient =
-        WeatherClient(weatherService)
+    fun provideWeatherClient(
+        weatherService: WeatherService,
+        responseHandler: NetworkClient,
+        @Named("apiKey") apiKey: String
+    ): WeatherClient =
+        WeatherClient(weatherService, responseHandler, apiKey)
+
+    @Provides
+    @Named("apiKey")
+    fun provideApiKey(): String {
+        // TODO: for demo purposes only, store private keys in a secure location
+        return "0fc22c042cfb8daaf3b5c0b50f203ca3"
+    }
 
 }

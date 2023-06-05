@@ -1,16 +1,13 @@
 package com.cognizant.openweather
 
-import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
 import androidx.test.rule.GrantPermissionRule
 import com.cognizant.openweather.ui.MainActivity
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -31,7 +28,7 @@ class MainActivityTest {
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @get:Rule
-    var permissionRule = GrantPermissionRule.grant(
+    var permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
     )
@@ -95,7 +92,7 @@ class MainActivityTest {
 
     }
 
-    fun waitUntilExists(tag: String, timeout: Long = 10000) {
+    private fun waitUntilExists(tag: String, timeout: Long = 10000) {
         val startTime = System.currentTimeMillis()
         while (true) {
             try {

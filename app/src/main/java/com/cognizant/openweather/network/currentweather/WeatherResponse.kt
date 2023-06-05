@@ -1,7 +1,7 @@
-package com.cognizant.openweather.network.weather
+package com.cognizant.openweather.network.currentweather
 
-import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class WeatherResponse(

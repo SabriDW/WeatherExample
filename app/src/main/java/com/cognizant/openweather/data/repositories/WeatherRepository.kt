@@ -1,8 +1,8 @@
 package com.cognizant.openweather.data.repositories
 
-import com.cognizant.openweather.network.weather.WeatherResponse
+import com.cognizant.openweather.network.ResponseResult
+import com.cognizant.openweather.network.currentweather.WeatherResponse
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 interface WeatherRepository {
 
@@ -10,9 +10,8 @@ interface WeatherRepository {
         cityName: String?,
         latitude: Double?,
         longitude: Double?,
-        onComplete: () -> Unit,
-        onError: (Int, String?) -> Unit
-    ): Flow<WeatherResponse?>
+    ): Flow<ResponseResult<WeatherResponse>>
 
+    fun getCachedWeather(): WeatherResponse?
 
 }
